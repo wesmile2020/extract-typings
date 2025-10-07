@@ -1,0 +1,55 @@
+{
+  "name": "extract-typings",
+  "version": "1.0.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "extract-typings": "dist/extract-typings.js"
+  },
+  "main": "dist/extract-typings.umd.cjs",
+  "module": "dist/extract-typings.js",
+  "types": "dist/extract-typings.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/extract-typings.js",
+      "require": "./dist/extract-typings.umd.cjs",
+      "types": "./dist/extract-typings.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint --ext .ts,.tsx ./src"
+  },
+  "keywords": [
+    "typescript",
+    "typings",
+    "extract"
+  ],
+  "license": "MIT",
+  "description": "Extract typings from TypeScript files",
+  "author": "lei.li",
+  "homepage": "https://github.com/wesmile2020/extract-typings",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wesmile2020/extract-typings.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wesmile2020/extract-typings/issues"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0",
+    "vite": "npm:rolldown-vite@7.1.14",
+    "vite-plugin-checker": "^0.11.0"
+  },
+  "overrides": {
+    "vite": "npm:rolldown-vite@7.1.14"
+  }
+}
