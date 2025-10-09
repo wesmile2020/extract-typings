@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^9.37.0
         version: 9.37.0
+      '@types/node':
+        specifier: ^24.7.0
+        version: 24.7.0
       eslint:
         specifier: ^9.37.0
         version: 9.37.0
@@ -22,10 +25,10 @@ importers:
         version: 8.46.0(eslint@9.37.0)(typescript@5.9.3)
       vite:
         specifier: npm:rolldown-vite@7.1.14
-        version: rolldown-vite@7.1.14
+        version: rolldown-vite@7.1.14(@types/node@24.7.0)
       vite-plugin-checker:
         specifier: ^0.11.0
-        version: 0.11.0(eslint@9.37.0)(optionator@0.9.4)(rolldown-vite@7.1.14)(typescript@5.9.3)
+        version: 0.11.0(eslint@9.37.0)(optionator@0.9.4)(rolldown-vite@7.1.14(@types/node@24.7.0))(typescript@5.9.3)
 
 packages:
 
@@ -216,6 +219,9 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/node@24.7.0':
+    resolution: {integrity: sha512-IbKooQVqUBrlzWTi79E8Fw78l8k1RNtlDDNWsFZs7XonuQSJ8oNYfEeclhprUldXISRMLzBpILuKgPlIxm+/Yw==}
 
   '@typescript-eslint/eslint-plugin@8.46.0':
     resolution: {integrity: sha512-hA8gxBq4ukonVXPy0OKhiaUh/68D0E88GSmtC1iAEnGaieuDi38LhS7jdCHRLi6ErJBNDGCzvh5EnzdPwUc0DA==}
@@ -805,6 +811,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  undici-types@7.14.0:
+    resolution: {integrity: sha512-QQiYxHuyZ9gQUIrmPo3IA+hUl4KYk8uSA7cHrcKd/l3p1OTpZcM0Tbp9x7FAtXdAYhlasd60ncPpgu6ihG6TOA==}
+
   unicorn-magic@0.3.0:
     resolution: {integrity: sha512-+QBBXBCvifc56fsbuxZQ6Sic3wqqc3WWaqxs58gvJrcOuN83HGTCwz3oS5phzU9LthRNE9VrJCFCLUgHeeFnfA==}
     engines: {node: '>=18'}
@@ -1025,6 +1034,10 @@ snapshots:
   '@types/estree@1.0.8': {}
 
   '@types/json-schema@7.0.15': {}
+
+  '@types/node@24.7.0':
+    dependencies:
+      undici-types: 7.14.0
 
   '@typescript-eslint/eslint-plugin@8.46.0(@typescript-eslint/parser@8.46.0(eslint@9.37.0)(typescript@5.9.3))(eslint@9.37.0)(typescript@5.9.3)':
     dependencies:
@@ -1490,7 +1503,7 @@ snapshots:
 
   reusify@1.1.0: {}
 
-  rolldown-vite@7.1.14:
+  rolldown-vite@7.1.14(@types/node@24.7.0):
     dependencies:
       '@oxc-project/runtime': 0.92.0
       fdir: 6.5.0(picomatch@4.0.3)
@@ -1500,6 +1513,7 @@ snapshots:
       rolldown: 1.0.0-beta.41
       tinyglobby: 0.2.15
     optionalDependencies:
+      '@types/node': 24.7.0
       fsevents: 2.3.3
 
   rolldown@1.0.0-beta.41:
@@ -1578,13 +1592,15 @@ snapshots:
 
   typescript@5.9.3: {}
 
+  undici-types@7.14.0: {}
+
   unicorn-magic@0.3.0: {}
 
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
 
-  vite-plugin-checker@0.11.0(eslint@9.37.0)(optionator@0.9.4)(rolldown-vite@7.1.14)(typescript@5.9.3):
+  vite-plugin-checker@0.11.0(eslint@9.37.0)(optionator@0.9.4)(rolldown-vite@7.1.14(@types/node@24.7.0))(typescript@5.9.3):
     dependencies:
       '@babel/code-frame': 7.27.1
       chokidar: 4.0.3
@@ -1593,7 +1609,7 @@ snapshots:
       picomatch: 4.0.3
       tiny-invariant: 1.3.3
       tinyglobby: 0.2.15
-      vite: rolldown-vite@7.1.14
+      vite: rolldown-vite@7.1.14(@types/node@24.7.0)
       vscode-uri: 3.1.0
     optionalDependencies:
       eslint: 9.37.0
