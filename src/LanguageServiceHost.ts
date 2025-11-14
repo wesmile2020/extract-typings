@@ -44,18 +44,29 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
     return this._cache.get(fileName)?.version.toString() || '0';
   }
 
-  setScriptSnapshot(fileName: string, code: string): void {
-    let cahce = this._cache.get(fileName);
-    if (cahce) {
-      cahce.update(code);
+  setScriptCache(fileName: string, code: string): void {
+    let cache = this._cache.get(fileName);
+    if (cache) {
+      cache.update(code);
     } else {
-      cahce = new ScriptCache(code);
-      this._cache.set(fileName, cahce);
+      cache = new ScriptCache(code);
+      this._cache.set(fileName, cache);
     }
   }
   
   getScriptSnapshot(fileName: string): ts.IScriptSnapshot | undefined {
-    return this._cache.get(fileName)?.snapshot;
+    let cache = this._cache.get(fileName);
+    if (cache) {
+      return cache.snapshot;
+    }
+    if (!this.fileExists(fileName)) {
+      return undefined;
+    }
+    const code = this.readFile(fileName) || '';
+    cache = new ScriptCache(code);
+    this._cache.set(fileName, cache);
+
+    return cache.snapshot;
   }
 
   getCurrentDirectory(): string {

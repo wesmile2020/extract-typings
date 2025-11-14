@@ -38,9 +38,6 @@
   "bugs": {
     "url": "https://github.com/wesmile2020/extract-typings/issues"
   },
-  "peerDependencies": {
-    "typescript": "^5.9.3"
-  },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
     "@types/node": "^24.7.0",
@@ -52,5 +49,11 @@
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.1.14"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "convert_json2dts": "^1.0.4",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
   }
 }
