@@ -37,6 +37,7 @@ class Engine {
     if (!configPath) {
       throw new Error(`Could not find a valid 'tsconfig.json' file in the current directory.`);
     }
+    // TODO: support reference tsconfig.json
     const { error, config } = ts.readConfigFile(configPath, ts.sys.readFile);
     if (error) {
       throw new Error(`Error reading 'tsconfig.json': ${error.messageText}`);
