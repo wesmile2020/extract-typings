@@ -8,7 +8,6 @@ import { JSON2Dts } from 'convert_json2dts';
 import { LanguageServiceHost } from './LanguageServiceHost';
 import {
   findTypings,
-  getFileName,
   getDependencies,
   logError,
   logWarning,
@@ -25,16 +24,13 @@ interface TransformedOutput {
 class Engine {
   private _host: LanguageServiceHost;
   private _service: ts.LanguageService;
-  /**
-   * Record output file name use count
-   */
+  /** Record output file name use count */
   private _nameIndices: Map<string, number> = new Map();
-  /**
-   * Record module name and output file name mapping
-   */
+  /** Record module name and output file name mapping */
   private _moduleNameMap: Map<string, string> = new Map();
   private _matchPath: MatchPath;
   private _json2dts: JSON2Dts = new JSON2Dts();
+  private _extensionsSet: Set<string> = new Set(EXTENSIONS);
   
   constructor(rootPath: string) {
     const configPath = ts.findConfigFile(rootPath, ts.sys.fileExists);
@@ -126,7 +122,7 @@ class Engine {
         const { file, start } = diagnostics[i];
         if (file && typeof start === 'number') {
           const { line, character } = file.getLineAndCharacterOfPosition(start);
-          message += `${file.fileName} (${line + 1},${character + 1})`;
+          message += ` on (${file.fileName}:${line + 1}:${character + 1})`;
         }
         logError(`Error: ${message}`);
       }
@@ -177,7 +173,13 @@ class Engine {
   private _getUniqueName(url: string): string {
     let name = this._moduleNameMap.get(url);
     if (!name) {
-      name = getFileName(url);
+      const basename = path.basename(url);
+      const extname = path.extname(url);
+      if (this._extensionsSet.has(extname)) {
+        name = basename.slice(0, basename.length - extname.length);
+      } else {
+        name = basename;
+      }
       let count = 0;
       if (this._nameIndices.has(name)) {
         /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
@@ -191,7 +193,7 @@ class Engine {
     return name;
   }
 
-  generate(entry: string, outDir: string, fileName: string): void {
+  generate(entry: string, outdir: string, fileName: string): void {
     this._nameIndices.clear();
     this._moduleNameMap.clear();
     
@@ -211,7 +213,7 @@ class Engine {
       }
       circleSet.add(current);
       const outFileName = isFirst ? fileName : this._getUniqueName(current);
-      const outPath = path.resolve(outDir, outFileName) + '.d.ts';
+      const outPath = path.resolve(outdir, outFileName) + '.d.ts';
       isFirst = false;
       const transformed = this._transform(current);
       if (transformed) {

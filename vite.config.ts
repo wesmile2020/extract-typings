@@ -12,9 +12,8 @@ for (let i = 0; i < dependencies.length; i += 1) {
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: ['./src/index.ts', './src/bin.ts'],
       name: 'ExtractTypings',
-      fileName: 'extract-typings',
     },
     rolldownOptions: {
       external: [

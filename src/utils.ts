@@ -52,10 +52,15 @@ export function deleteFile(filePath: string): void {
   }
 }
 
-export function getFileName(url: string): string {
-  const basename = path.basename(url);
-  const extname = path.extname(url);
-  return basename.slice(0, basename.length - extname.length);
+export function createDirectory(dirPath: string): void {
+  const url = path.resolve(dirPath);
+  const pathSegments = url.split(path.sep);
+  for (let i = 1; i <= pathSegments.length; i++) {
+    const dir = pathSegments.slice(0, i).join(path.sep);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+  }
 }
 
 export function logError(...message: unknown[]): void {
