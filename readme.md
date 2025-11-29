@@ -1,8 +1,8 @@
 # extract-typings
 
-用于提取ts项目声明文件(.d.ts)的一个工具库
+a tool to extract typings from ts project.
 
-## usage
+## Usage
 
 ### Install
 
@@ -14,36 +14,38 @@ npm install extract-typings --save-dev
 
 Execute the following command will extract the `d.ts` files related to `./src/index.ts` output to directory `dist/typings`
 ```bash
-extract-typings ./src/index.ts -o dist/typings -f index.d.ts -c 
+extract-typings -e ./src/index.ts -o dist/typings -f index.d.ts -c 
 ```
 
 ### Options
+- -e: entry file path; required;
 - -o: output directory default is `dist/typings`;
 - -f output entry file name default is `main.d.ts`;
 - -c if add this param, will clear your output directory;
 
 
-### Node API
+### Node API 
 
-创建 extract.js 在项目的根目录
+First, create a file named `extract.js` in the root directory of your project.
 ```javascript
 const { generate } = require('extract-typings');
 const path = require('path');
 
 generate({
-  input: path.resolve(__dirname, 'src/index.ts'), // 入口文件
-  output: path.resolve(__dirname, 'dist/typings'), // 存放生成文件的目录
+  entry: path.resolve(__dirname, 'src/index.ts'),
+  output: path.resolve(__dirname, 'dist/typings'),
 });
 ```
 
-执行一下命令将会自动提取 .d.ts
+Then, run the following command to extract typings:
 ```bash
 node ./extract.js
 ```
 
 ### Options
 
-- input: string; required, 入口文件
-- output: string; required, 存放生成文件的目录
-- autoClear: boolean; default is true, 是否自动清空output文件夹
-- extensions: string[]; default is ['.js', '.ts', '.tsx', '.jsx']; 文件后缀名
+- entry: string; required; entry file path;
+- outdir: string; required; output directory path;
+- autoClean: boolean; default is false; whether to clean output directory before extract;
+- fileName: string; default is 'index.d.ts'; output file name;
+

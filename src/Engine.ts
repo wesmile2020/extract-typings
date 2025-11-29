@@ -154,10 +154,13 @@ class Engine {
   
   private _findPath(moduleName: string, importer: string): string | null {
     let url = this._matchPath(moduleName, readJsonSync, ts.sys.fileExists, EXTENSIONS);
-    if (!url) {
+    if (url) {
+      url = path.resolve(url);
+    } else {
       const dirname = path.dirname(importer);
       url = path.resolve(dirname, moduleName);
     }
+
     if (ts.sys.fileExists(url)) {
       return url;
     }

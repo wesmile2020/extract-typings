@@ -21,7 +21,7 @@
   "scripts": {
     "build": "vite build && npm run typings",
     "lint": "eslint --ext .ts,.tsx ./src",
-    "typings": "node dist/bin.cjs src/index.ts -o dist/typings -c"
+    "typings": "node dist/bin.cjs -e src/index.ts -o dist/typings -c"
   },
   "keywords": [
     "typescript",

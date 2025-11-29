@@ -10,7 +10,7 @@ export interface ExtractOptions {
   outdir: string;
   /** auto clean output directory default is false */
   autoClean?: boolean;
-  /** custom file name default is 'index.d.ts' */
+  /** output file name default is 'index.d.ts' */
   fileName?: string;
 }
 
