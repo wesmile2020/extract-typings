@@ -10,7 +10,6 @@ import {
   findTypings,
   getDependencies,
   logError,
-  logWarning,
   readJsonSync
 } from './utils';
 
@@ -117,7 +116,7 @@ class Engine {
       ...this._service.getSemanticDiagnostics(url)
     ];
     if (diagnostics.length > 0) {
-      logWarning(`Generate declaration file for ${url} with warnings`);
+      logError(`Generate declaration file for ${url} with ${diagnostics.length} errors`);
       for (let i = 0; i < diagnostics.length; i += 1) {
        let message = ts.flattenDiagnosticMessageText(diagnostics[i].messageText, '\n');
         const { file, start } = diagnostics[i];
