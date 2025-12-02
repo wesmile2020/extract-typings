@@ -26,6 +26,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
   private _compilerOptions: ts.CompilerOptions;
   private _cache: Map<string, ScriptCache> = new Map();
   private _rootPath: string;
+  private _projectReferences?: readonly ts.ProjectReference[];
 
   constructor(compilerOptions: ts.CompilerOptions, rootPath: string) {
     this._compilerOptions = compilerOptions;
@@ -67,6 +68,18 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
     this._cache.set(fileName, cache);
 
     return cache.snapshot;
+  }
+
+  containScript(fileName: string): boolean {
+    return this._cache.has(fileName);
+  }
+
+  setProjectReferences(projectReferences: readonly ts.ProjectReference[]): void {
+    this._projectReferences = projectReferences;
+  }
+
+  getProjectReferences(): readonly ts.ProjectReference[] | undefined {
+    return this._projectReferences;
   }
 
   getCurrentDirectory(): string {

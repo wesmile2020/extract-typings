@@ -8,7 +8,11 @@ function resolve(...dirs: string[]) {
 
 /**
  * Run the extract-typings tool.
- * 
+ * -e <entry> Entry file path.
+ * -o <output> Output directory path. Default is ./dist/typings
+ * -f <filename> Output file name. Default is index
+ * -c Auto clean output directory before generate typings.
+ * -p <project> tsconfig.json file path. Default is 'tsconfig.json'
  */
 function run() {
   const args = process.argv.slice(2);
@@ -35,12 +39,19 @@ function run() {
     fileName = args[fileNameIdx + 1];
   }
 
+  const projectIdx = args.indexOf('-p');
+  let project: string | undefined = undefined;
+  if (projectIdx >= 0 && projectIdx < args.length - 1) {
+    project = resolve(args[projectIdx + 1]);
+  }
+
   try {
     extract({
       entry: entry,
       outdir: output,
       autoClean: args.includes('-c'),
       fileName,
+      project,
     });
   } catch (error) {
     logError((error as Error).message);

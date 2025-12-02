@@ -1,5 +1,5 @@
 import { Engine } from './Engine';
-import { createDirectory, deleteFile, logSuccess } from './utils';
+import { createDirectory, deleteFile } from './utils';
 
 export { version } from '~/package.json';
 
@@ -12,10 +12,15 @@ export interface ExtractOptions {
   autoClean?: boolean;
   /** output file name default is 'index.d.ts' */
   fileName?: string;
+  /** tsconfig.json file path default is 'tsconfig.json' */
+  project?: string;
 }
 
 export function extract(options: ExtractOptions): void {
-  const engine = new Engine(process.cwd());
+  const engine = new Engine({
+    rootPath: process.cwd(),
+    project: options.project,
+  });
 
   const { entry, outdir, autoClean, fileName = 'index.d.ts' } = options;
 
@@ -26,6 +31,4 @@ export function extract(options: ExtractOptions): void {
   }
 
   engine.generate(entry, outdir, fileName);
-
-  logSuccess(`> Successfully extract typings to ${outdir}`);
 }
