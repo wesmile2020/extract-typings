@@ -1,5 +1,6 @@
 import path from 'path';
 import ts from 'typescript';
+import chalk from 'chalk';
 import {
   type MatchPath,
   createMatchPath,
@@ -7,9 +8,10 @@ import {
 import { JSON2Dts } from 'convert_json2dts';
 import { LanguageServiceHost } from './LanguageServiceHost';
 import {
-  findTypings,
+  formatTimeDuration,
   getDependencies,
   logError,
+  logSuccess,
   readJsonSync
 } from './utils';
 
@@ -18,6 +20,12 @@ const EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.d.tsx', '.js', '.jsx'];
 interface TransformedOutput {
   declaration: string;
   dependencies: string[];
+  errors: string[];
+}
+
+interface EngineOptions {
+  rootPath: string;
+  project?: string;
 }
 
 class Engine {
@@ -31,34 +39,32 @@ class Engine {
   private _json2dts: JSON2Dts = new JSON2Dts();
   private _extensionsSet: Set<string> = new Set(EXTENSIONS);
   
-  constructor(rootPath: string) {
-    const configPath = ts.findConfigFile(rootPath, ts.sys.fileExists);
+  constructor(options: EngineOptions) {
+    const { rootPath, project } = options;
+    const configPath = ts.findConfigFile(rootPath, ts.sys.fileExists, project);
     if (!configPath) {
       throw new Error(`Could not find a valid 'tsconfig.json' file in the current directory.`);
     }
-    // TODO: support reference tsconfig.json
     const { error, config } = ts.readConfigFile(configPath, ts.sys.readFile);
     if (error) {
       throw new Error(`Error reading 'tsconfig.json': ${error.messageText}`);
     }
-    const compilerOptions = {
-      ...config.compilerOptions,
+    const { options: compilerOptions, projectReferences, fileNames } = ts.parseJsonConfigFileContent(config, ts.sys, rootPath, {
       noEmit: false,
       declaration: true,
       emitDeclarationOnly: true,
-    };
-    const { options, errors } = ts.convertCompilerOptionsFromJson(compilerOptions, rootPath);
-    if (errors.length > 0) {
-      const errorMessage = errors.map(error => error.messageText).join('\n');
-      throw new Error(`Error converting compiler options: ${errorMessage}`);
-    }
-    this._matchPath = createMatchPath(options.baseUrl ?? rootPath, options.paths ?? {});
+    }, configPath);
 
-    this._host = new LanguageServiceHost(options, rootPath);
-    const typings = findTypings(rootPath);
-    for (let i = 0; i < typings.length; i += 1) {
-      const code = ts.sys.readFile(typings[i], 'utf8') ?? '';
-      this._host.setScriptCache(typings[i], code);
+    this._matchPath = createMatchPath(compilerOptions.baseUrl ?? rootPath, compilerOptions.paths ?? {});
+    this._host = new LanguageServiceHost(compilerOptions, rootPath);
+    if (projectReferences) {
+      this._host.setProjectReferences(projectReferences);
+    }
+
+    for (let i = 0; i < fileNames.length; i += 1) {
+      const url = path.resolve(rootPath, fileNames[i]);
+      const code = ts.sys.readFile(url, 'utf8') ?? '';
+      this._host.setScriptCache(url, code);
     }
     
     this._service = ts.createLanguageService(this._host, ts.createDocumentRegistry());
@@ -78,10 +84,16 @@ class Engine {
       throw new Error(`Error: ${message}`);
     }
   }
+
+  private _relativePath(url: string): string {
+    const relativePath = path.relative(this._host.getCurrentDirectory(), url);
+    return relativePath.replaceAll('\\', '/');
+  }
   
-  private _transform(url: string): TransformedOutput | null {
+  private  _transform(url: string): TransformedOutput {
     console.log('transform', url);
-    
+
+    const filePath = this._relativePath(url);
     if (/\.json$/.test(url)) {
       const jsonCode = ts.sys.readFile(url) ?? '';
       try {
@@ -90,41 +102,48 @@ class Engine {
         return {
           declaration,
           dependencies: [],
+          errors: [],
         };
       /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
       } catch (_error: unknown) {
-        logError(`Error: Failed to transform JSON file ${url}`);
-        return null;
+        return {
+          declaration: '',
+          dependencies: [],
+          errors: [`${chalk.cyan(filePath)} ${chalk.red('Error: Invalid JSON file.')}`],
+        };
       }
     }
 
-    const code = ts.sys.readFile(url, 'utf8') ?? '';
-    this._host.setScriptCache(url, code);
+    if (!this._host.containScript(url)) {
+      const code = ts.sys.readFile(url, 'utf8') ?? '';
+      this._host.setScriptCache(url, code);
+    }
 
     const output = this._service.getEmitOutput(url, true, true);
-    if (output.emitSkipped) {
-      logError(`Error: Failed to emit ${url} declaration file`);
-      return null;
-    }
     const declaration = output.outputFiles.find((file) => /\.d\.ts$/.test(file.name));
     if (!declaration) {
-      logError(`Error: Failed to emit ${url} declaration file`);
-      return null;
+      return {
+        declaration: '',
+        dependencies: [],
+        errors: [`${chalk.cyan(filePath)} ${chalk.red('Error: Failed to emit declaration file.')}`],
+      };
     }
     const diagnostics = [
       ...this._service.getSyntacticDiagnostics(url),
-      ...this._service.getSemanticDiagnostics(url)
+      ...this._service.getSemanticDiagnostics(url),
     ];
+
+    const errors: string[] = [];
     if (diagnostics.length > 0) {
-      logError(`Generate declaration file for ${url} with ${diagnostics.length} errors`);
       for (let i = 0; i < diagnostics.length; i += 1) {
-       let message = ts.flattenDiagnosticMessageText(diagnostics[i].messageText, '\n');
+        let errorFilePath = filePath;
         const { file, start } = diagnostics[i];
         if (file && typeof start === 'number') {
           const { line, character } = file.getLineAndCharacterOfPosition(start);
-          message += ` on (${file.fileName}:${line + 1}:${character + 1})`;
+          errorFilePath += `:${line + 1}:${character + 1}`;
         }
-        logError(`Error: ${message}`);
+        const errorMessage = ts.flattenDiagnosticMessageText(diagnostics[i].messageText, '\n');
+        errors.push(`${chalk.cyan(errorFilePath)} ${chalk.red('Error', errorMessage)}`);
       }
     }
     // get declaration ast
@@ -148,6 +167,7 @@ class Engine {
     return {
       declaration: transformedDeclaration,
       dependencies: transformedDependencies,
+      errors,
     };
   }
   
@@ -197,6 +217,8 @@ class Engine {
   }
 
   generate(entry: string, outdir: string, fileName: string): void {
+    const start = performance.now();
+
     this._nameIndices.clear();
     this._moduleNameMap.clear();
     
@@ -208,6 +230,7 @@ class Engine {
       logError(`The entry file ${entry} not found`);
     }
     const circleSet: Set<string> = new Set();
+    const errors: string[] = [];
     while (queue.length > 0) {
       /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
       const current = queue.pop()!;
@@ -222,7 +245,16 @@ class Engine {
       if (transformed) {
         ts.sys.writeFile(outPath, transformed.declaration);
         queue.push(...transformed.dependencies);
+        errors.push(...transformed.errors);
       }
+    }
+
+    const end = performance.now();
+    if (errors.length > 0) {
+      logError('> Errors occurred during generation:');
+      console.log(errors.join('\n'));
+    } else {
+      logSuccess(`> Successfully generate typings in ${formatTimeDuration(end - start)}`);
     }
   }
 }

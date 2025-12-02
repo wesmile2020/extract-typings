@@ -3,38 +3,6 @@ import fs from 'fs';
 import chalk from 'chalk';
 import ts from 'typescript';
 
-export function eachFile(url: string, ignore: RegExp, callback: (filePath: string) => void): void {
-  if (ignore.test(url)) {
-    return;
-  }
-  
-  const stat = fs.statSync(url);
-  if (stat.isDirectory()) {
-    const dirs = fs.readdirSync(url);
-    for (let i = 0; i < dirs.length; i++) {
-      const nextUrl = path.resolve(url, dirs[i]);
-      eachFile(nextUrl, ignore, callback);
-    }
-  } else if (stat.isFile()) {
-    callback(url);
-  } else if (stat.isSymbolicLink()) {
-    const target = fs.readlinkSync(url);
-    eachFile(target, ignore, callback);
-  }
-}
-
-export function findTypings(rootPath: string): string[] {
-  const typings: string[] = [];
-  
-  eachFile(rootPath, /node_modules/, (filePath) => {
-    if (/\.d\.ts$/.test(filePath)) {
-      typings.push(filePath);
-    }
-  });
-  
-  return typings;
-}
-
 export function deleteFile(filePath: string): void {
   if (!fs.existsSync(filePath)) {
     return;
@@ -117,4 +85,21 @@ export function readJsonSync(filePath: string): any {
     return JSON.parse(content);
   }
   return null;
+}
+
+export function formatTimeDuration(duration: number): string {
+  if (duration < 1000) {
+    return `${duration.toFixed(0)}ms`;
+  } else if (duration < 60 * 1000) {
+    const seconds = (duration / 1000).toFixed(2);
+    return `${seconds}s`;
+  } else if (duration < 60 * 60 * 1000) {
+    const minutes = Math.floor(duration / (60 * 1000));
+    const seconds = ((duration % (60 * 1000)) / 1000).toFixed(0);
+    return `${minutes}m ${seconds}s`;
+  }
+  const hours = Math.floor(duration / (60 * 60 * 1000));
+  const minutes = Math.floor((duration % (60 * 60 * 1000)) / (60 * 1000));
+  const seconds = ((duration % (60 * 1000)) % 60).toFixed(0);
+  return `${hours}h ${minutes}m ${seconds}s`;
 }

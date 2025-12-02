@@ -22,6 +22,7 @@ extract-typings -e ./src/index.ts -o dist/typings -f index.d.ts -c
 - -o: output directory default is `dist/typings`;
 - -f output entry file name default is `main.d.ts`;
 - -c if add this param, will clear your output directory;
+- -p: tsconfig.json file path;
 
 
 ### Node API 
@@ -48,4 +49,5 @@ node ./extract.js
 - outdir: string; required; output directory path;
 - autoClean: boolean; default is false; whether to clean output directory before extract;
 - fileName: string; default is 'index.d.ts'; output file name;
+- project: string; tsconfig.json file path;
 
