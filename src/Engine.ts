@@ -1,6 +1,7 @@
 import path from 'path';
 import ts from 'typescript';
 import chalk from 'chalk';
+import ora, { type Ora } from 'ora';
 import {
   type MatchPath,
   createMatchPath,
@@ -11,11 +12,11 @@ import {
   formatTimeDuration,
   getDependencies,
   logError,
-  logSuccess,
-  readJsonSync
+  readJsonSync,
+  sleep
 } from './utils';
 
-const EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.d.tsx', '.js', '.jsx'];
+const EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.d.tsx', '.js', '.jsx', '.json'];
 
 interface TransformedOutput {
   declaration: string;
@@ -38,6 +39,7 @@ class Engine {
   private _matchPath: MatchPath;
   private _json2dts: JSON2Dts = new JSON2Dts();
   private _extensionsSet: Set<string> = new Set(EXTENSIONS);
+  private _spinner: Ora = ora('Initializing...');
   
   constructor(options: EngineOptions) {
     const { rootPath, project } = options;
@@ -90,10 +92,11 @@ class Engine {
     return relativePath.replaceAll('\\', '/');
   }
   
-  private  _transform(url: string): TransformedOutput {
-    console.log('transform', url);
-
+  private async _transform(url: string): Promise<TransformedOutput> {
     const filePath = this._relativePath(url);
+    this._spinner.text = `Emitting ${chalk.cyan(filePath)} d.ts file`;
+    // sleep 0ms to let the spinner update
+    await sleep(0);
     if (/\.json$/.test(url)) {
       const jsonCode = ts.sys.readFile(url) ?? '';
       try {
@@ -160,7 +163,10 @@ class Engine {
         }
         const moduleName = this._getUniqueName(dependenceUrl);
         transformedDeclaration = transformedDeclaration.replaceAll(dependencies[i], `./${moduleName}`);
-        transformedDependencies.push(dependenceUrl);
+        const suffix = path.extname(dependenceUrl);
+        if (this._extensionsSet.has(suffix)) {
+          transformedDependencies.push(dependenceUrl);
+        }
       }
     }
 
@@ -216,8 +222,9 @@ class Engine {
     return name;
   }
 
-  generate(entry: string, outdir: string, fileName: string): void {
+  async generate(entry: string, outdir: string, fileName: string): Promise<void> {
     const start = performance.now();
+    this._spinner.start();
 
     this._nameIndices.clear();
     this._moduleNameMap.clear();
@@ -241,20 +248,21 @@ class Engine {
       const outFileName = isFirst ? fileName : this._getUniqueName(current);
       const outPath = path.resolve(outdir, outFileName) + '.d.ts';
       isFirst = false;
-      const transformed = this._transform(current);
+      const transformed = await this._transform(current);
       if (transformed) {
         ts.sys.writeFile(outPath, transformed.declaration);
         queue.push(...transformed.dependencies);
         errors.push(...transformed.errors);
       }
     }
-
     const end = performance.now();
     if (errors.length > 0) {
-      logError('> Errors occurred during generation:');
+      const failMessage = chalk.red(' Errors occurred during generation:');
+      this._spinner.fail(failMessage);
       console.log(errors.join('\n'));
     } else {
-      logSuccess(`> Successfully generate typings in ${formatTimeDuration(end - start)}`);
+      const successMessage = chalk.green(`Successfully generate typings in ${formatTimeDuration(end - start)}`);
+      this._spinner.succeed(successMessage);
     }
   }
 }

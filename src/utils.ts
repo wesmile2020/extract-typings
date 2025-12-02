@@ -103,3 +103,7 @@ export function formatTimeDuration(duration: number): string {
   const seconds = ((duration % (60 * 1000)) % 60).toFixed(0);
   return `${hours}h ${minutes}m ${seconds}s`;
 }
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
