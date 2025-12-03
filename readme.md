@@ -34,7 +34,7 @@ const path = require('path');
 
 generate({
   entry: path.resolve(__dirname, 'src/index.ts'),
-  output: path.resolve(__dirname, 'dist/typings'),
+  outdir: path.resolve(__dirname, 'dist/typings'),
 });
 ```
 
