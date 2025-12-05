@@ -22,13 +22,7 @@ export function deleteFile(filePath: string): void {
 
 export function createDirectory(dirPath: string): void {
   const url = path.resolve(dirPath);
-  const pathSegments = url.split(path.sep);
-  for (let i = 1; i <= pathSegments.length; i++) {
-    const dir = pathSegments.slice(0, i).join(path.sep);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-  }
+  fs.mkdirSync(url, { recursive: true });
 }
 
 export function logError(...message: unknown[]): void {
