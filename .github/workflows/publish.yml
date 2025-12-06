@@ -11,14 +11,14 @@ jobs:
     steps:
       # 1. 将仓库拉取到虚拟机环境
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # 2. 设置Node.js环境
       - name: Setup Node.js environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 22
+          registry-url: https://registry.npmjs.org
 
       # 3. 安装依赖并构建
       - name: Install and Build
