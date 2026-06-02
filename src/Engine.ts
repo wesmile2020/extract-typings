@@ -200,6 +200,15 @@ class Engine {
       }
     }
 
+    // for index file
+    const indexCandidate = path.resolve(url, 'index');
+    for (let i = 0; i < EXTENSIONS.length; i += 1) {
+      const candidate = `${indexCandidate}${EXTENSIONS[i]}`;
+      if (ts.sys.fileExists(candidate)) {
+        return candidate;
+      }
+    }
+
     return null;
   }
 
@@ -210,6 +219,11 @@ class Engine {
       const extname = path.extname(url);
       if (this._extensionsSet.has(extname)) {
         name = basename.slice(0, basename.length - extname.length);
+        let parent = path.dirname(url);
+        while (name === 'index' && parent) {
+          name = path.basename(parent);
+          parent = path.dirname(parent);
+        }
       } else {
         name = basename;
       }
@@ -232,10 +246,13 @@ class Engine {
     this._nameIndices.clear();
     this._moduleNameMap.clear();
 
+    this._nameIndices.set(fileName, 1);
+
     let isFirst = true;
     const queue: string[] = [];
-    if (ts.sys.fileExists(entry)) {
-      queue.push(entry);
+    const resolvedEntry = path.resolve(entry);
+    if (ts.sys.fileExists(resolvedEntry)) {
+      queue.push(resolvedEntry);
     } else {
       logError(`The entry file ${entry} not found`);
     }

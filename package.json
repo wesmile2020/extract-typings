@@ -1,6 +1,6 @@
 {
   "name": "extract-typings",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Extract typings from TypeScript files",
   "keywords": [
     "extract",
