@@ -1,13 +1,29 @@
 {
   "name": "extract-typings",
-  "version": "1.0.2",
-  "type": "module",
-  "files": [
-    "dist"
+  "version": "6.0.0",
+  "description": "Extract typings from TypeScript files",
+  "keywords": [
+    "extract",
+    "typescript",
+    "typings"
   ],
+  "homepage": "https://github.com/wesmile2020/extract-typings",
+  "bugs": {
+    "url": "https://github.com/wesmile2020/extract-typings/issues"
+  },
+  "license": "MIT",
+  "author": "lei.li",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wesmile2020/extract-typings.git"
+  },
   "bin": {
     "extract-typings": "dist/bin.cjs"
   },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,39 +36,22 @@
   },
   "scripts": {
     "build": "vite build && npm run typings",
-    "lint": "eslint --ext .ts,.tsx ./src",
+    "lint": "oxlint",
+    "format": "oxfmt",
     "typings": "node dist/bin.cjs -e src/index.ts -o dist/typings -c"
-  },
-  "keywords": [
-    "typescript",
-    "typings",
-    "extract"
-  ],
-  "license": "MIT",
-  "description": "Extract typings from TypeScript files",
-  "author": "lei.li",
-  "homepage": "https://github.com/wesmile2020/extract-typings",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/wesmile2020/extract-typings.git"
-  },
-  "bugs": {
-    "url": "https://github.com/wesmile2020/extract-typings/issues"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "@types/node": "^24.7.0",
-    "eslint": "^9.37.0",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.0",
-    "vite": "8.0.0",
-    "vite-plugin-checker": "^0.12.0"
   },
   "dependencies": {
     "chalk": "^5.6.2",
     "convert_json2dts": "^1.0.5",
-    "ora": "^9.0.0",
+    "ora": "^9.4.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0",
+    "vite": "8.0.16",
+    "vite-plugin-checker": "^0.14.1"
   }
 }

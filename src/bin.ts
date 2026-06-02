@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import path from 'path';
+import path from 'node:path';
 import { logError } from './utils';
 import { extract } from './index';
 

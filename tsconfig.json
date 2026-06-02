@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
     "target": "es2015",
     "useDefineForClassFields": true,
     "module": "esnext",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "skipLibCheck": true,
+    "types": ["node"],
 
     /* Bundler mode */
     "noEmit": true,

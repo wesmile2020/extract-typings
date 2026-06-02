@@ -4,9 +4,14 @@ import checker from 'vite-plugin-checker';
 import pkg from './package.json';
 
 const dependencies = Object.keys(pkg.dependencies);
-const globals: Record<string, string> = {};
+const ignoredDependencies = new Set(['chalk', 'ora']);
+
+const externals = ['node:fs', 'node:path', 'node:process', 'node:util'];
 for (let i = 0; i < dependencies.length; i += 1) {
-  globals[dependencies[i]] = dependencies[i];
+  if (ignoredDependencies.has(dependencies[i])) {
+    continue;
+  }
+  externals.push(dependencies[i]);
 }
 
 export default defineConfig({
@@ -16,19 +21,9 @@ export default defineConfig({
       name: 'ExtractTypings',
     },
     rolldownOptions: {
-      external: [
-        'fs',
-        'path',
-        ...dependencies,
-      ],
-      output: {
-        globals: {
-          fs: 'fs',
-          path: 'path',
-          ...globals,
-        },
-      },
+      external: externals,
     },
+    minify: false,
   },
   resolve: {
     alias: {
@@ -39,9 +34,7 @@ export default defineConfig({
   plugins: [
     checker({
       typescript: true,
-      eslint: {
-        lintCommand: 'eslint --ext .ts,.tsx ./src'
-      }
+      oxlint: true,
     }),
   ],
 });
