@@ -7,7 +7,7 @@ class ScriptCache {
   constructor(code: string) {
     this._snapshot = ts.ScriptSnapshot.fromString(code);
   }
-  
+
   update(code: string) {
     this._version += 1;
     this._snapshot = ts.ScriptSnapshot.fromString(code);
@@ -54,7 +54,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
       this._cache.set(fileName, cache);
     }
   }
-  
+
   getScriptSnapshot(fileName: string): ts.IScriptSnapshot | undefined {
     let cache = this._cache.get(fileName);
     if (cache) {
@@ -103,7 +103,7 @@ class LanguageServiceHost implements ts.LanguageServiceHost {
     extensions?: readonly string[],
     exclude?: readonly string[],
     include?: readonly string[],
-    depth?: number
+    depth?: number,
   ): string[] {
     return ts.sys.readDirectory(path, extensions, exclude, include, depth);
   }

@@ -1,20 +1,11 @@
-import path from 'path';
+import path from 'node:path';
 import ts from 'typescript';
 import chalk from 'chalk';
 import ora, { type Ora } from 'ora';
-import {
-  type MatchPath,
-  createMatchPath,
-} from 'tsconfig-paths';
+import { type MatchPath, createMatchPath } from 'tsconfig-paths';
 import { JSON2Dts } from 'convert_json2dts';
 import { LanguageServiceHost } from './LanguageServiceHost';
-import {
-  formatTimeDuration,
-  getDependencies,
-  logError,
-  readJsonSync,
-  sleep
-} from './utils';
+import { formatTimeDuration, getDependencies, logError, readJsonSync, sleep } from './utils';
 
 const EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.d.tsx', '.js', '.jsx', '.json'];
 
@@ -40,7 +31,7 @@ class Engine {
   private _json2dts: JSON2Dts = new JSON2Dts();
   private _extensionsSet: Set<string> = new Set(EXTENSIONS);
   private _spinner: Ora = ora('Initializing...');
-  
+
   constructor(options: EngineOptions) {
     const { rootPath, project } = options;
     const configPath = ts.findConfigFile(rootPath, ts.sys.fileExists, project);
@@ -51,13 +42,23 @@ class Engine {
     if (error) {
       throw new Error(`Error reading 'tsconfig.json': ${error.messageText}`);
     }
-    const { options: compilerOptions, projectReferences, fileNames } = ts.parseJsonConfigFileContent(config, ts.sys, rootPath, {
-      noEmit: false,
-      declaration: true,
-      emitDeclarationOnly: true,
-    }, configPath);
+    const {
+      options: compilerOptions,
+      projectReferences,
+      fileNames,
+    } = ts.parseJsonConfigFileContent(
+      config,
+      ts.sys,
+      rootPath,
+      {
+        noEmit: false,
+        declaration: true,
+        emitDeclarationOnly: true,
+      },
+      configPath,
+    );
 
-    this._matchPath = createMatchPath(compilerOptions.baseUrl ?? rootPath, compilerOptions.paths ?? {});
+    this._matchPath = createMatchPath(rootPath, compilerOptions.paths ?? {});
     this._host = new LanguageServiceHost(compilerOptions, rootPath);
     if (projectReferences) {
       this._host.setProjectReferences(projectReferences);
@@ -68,9 +69,9 @@ class Engine {
       const code = ts.sys.readFile(url, 'utf8') ?? '';
       this._host.setScriptCache(url, code);
     }
-    
+
     this._service = ts.createLanguageService(this._host, ts.createDocumentRegistry());
-    
+
     const diagnostics = this._service.getCompilerOptionsDiagnostics();
     if (diagnostics.length > 0) {
       let message = '';
@@ -91,13 +92,13 @@ class Engine {
     const relativePath = path.relative(this._host.getCurrentDirectory(), url);
     return relativePath.replaceAll('\\', '/');
   }
-  
+
   private async _transform(url: string): Promise<TransformedOutput> {
     const filePath = this._relativePath(url);
     this._spinner.text = `Emitting ${chalk.cyan(filePath)} d.ts file`;
     // sleep 0ms to let the spinner update
     await sleep(0);
-    if (/\.json$/.test(url)) {
+    if (url.endsWith('.json')) {
       const jsonCode = ts.sys.readFile(url) ?? '';
       try {
         const json = JSON.parse(jsonCode);
@@ -107,7 +108,7 @@ class Engine {
           dependencies: [],
           errors: [],
         };
-      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
       } catch (_error: unknown) {
         return {
           declaration: '',
@@ -123,7 +124,7 @@ class Engine {
     }
 
     const output = this._service.getEmitOutput(url, true, true);
-    const declaration = output.outputFiles.find((file) => /\.d\.ts$/.test(file.name));
+    const declaration = output.outputFiles.find((file) => file.name.endsWith('.d.ts'));
     if (!declaration) {
       return {
         declaration: '',
@@ -162,7 +163,10 @@ class Engine {
           continue;
         }
         const moduleName = this._getUniqueName(dependenceUrl);
-        transformedDeclaration = transformedDeclaration.replaceAll(dependencies[i], `./${moduleName}`);
+        transformedDeclaration = transformedDeclaration.replaceAll(
+          dependencies[i],
+          `./${moduleName}`,
+        );
         const suffix = path.extname(dependenceUrl);
         if (this._extensionsSet.has(suffix)) {
           transformedDependencies.push(dependenceUrl);
@@ -176,7 +180,7 @@ class Engine {
       errors,
     };
   }
-  
+
   private _findPath(moduleName: string, importer: string): string | null {
     let url = this._matchPath(moduleName, readJsonSync, ts.sys.fileExists, EXTENSIONS);
     if (url) {
@@ -198,7 +202,7 @@ class Engine {
 
     return null;
   }
-  
+
   private _getUniqueName(url: string): string {
     let name = this._moduleNameMap.get(url);
     if (!name) {
@@ -211,7 +215,6 @@ class Engine {
       }
       let count = 0;
       if (this._nameIndices.has(name)) {
-        /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
         count = this._nameIndices.get(name)!;
         name = `${name}_${count + 1}`;
       }
@@ -228,7 +231,7 @@ class Engine {
 
     this._nameIndices.clear();
     this._moduleNameMap.clear();
-    
+
     let isFirst = true;
     const queue: string[] = [];
     if (ts.sys.fileExists(entry)) {
@@ -261,7 +264,9 @@ class Engine {
       this._spinner.fail(failMessage);
       console.log(errors.join('\n'));
     } else {
-      const successMessage = chalk.green(`Successfully generate typings in ${formatTimeDuration(end - start)}`);
+      const successMessage = chalk.green(
+        `Successfully generate typings in ${formatTimeDuration(end - start)}`,
+      );
       this._spinner.succeed(successMessage);
     }
   }
